@@ -1,15 +1,19 @@
 {
-  "name": "react-routing-example",
-  "homepage": "https://PowerOfM.github.io/react-routing",
-  "version": "0.0.0",
+  "name": "@ionx/react-routing-example",
+  "homepage": "https://powerofm.github.io/react-routing",
+  "version": "0.0.1",
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@ionx/react-routing": "file:..",
     "prop-types": "^15.6.2",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
+    "react-redux": "^5.0.7",
     "react-scripts": "^1.1.4",
-    "react-routing": "file:.."
+    "redux": "^4.0.0",
+    "redux-promise-middleware": "^5.1.1",
+    "redux-thunk": "^2.3.0"
   },
   "scripts": {
     "start": "react-scripts start",

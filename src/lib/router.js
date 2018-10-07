@@ -1,6 +1,6 @@
 import React from 'react'
 import toRegex from 'path-to-regexp'
-import history, { navigateReplace } from './history'
+import { history, navigateReplace, historyListenerRegistered, isHistoryListenerRegistered } from './history'
 
 export default class Router extends React.Component {
   constructor (props) {
@@ -29,6 +29,13 @@ export default class Router extends React.Component {
       route: null,
       pathname: window.location.pathname,
       redirect: ''
+    }
+
+    if (!isHistoryListenerRegistered()) {
+      historyListenerRegistered()
+      history.listen((location, method) => {
+        this.componentWillReceiveProps({ location, method })
+      })
     }
   }
 
@@ -103,7 +110,7 @@ export default class Router extends React.Component {
   }
 
   render () {
-    const { route, relativePathname, params } = this.state
+    const { route, pathname, relativePathname, params } = this.state
 
     // Show loading screen for initial state/redirects
     if (!route || typeof route.action !== 'function') {
@@ -112,12 +119,21 @@ export default class Router extends React.Component {
     }
 
     // Merge location objects from parent routers with local data
-    const location = {
-      ...this.props.location,
-      relativePathname,
-      params: {
-        ...this.props.location.params,
-        ...params
+    let location = {}
+    if (this.props.location) {
+      location = {
+        ...this.props.location,
+        relativePathname,
+        params: {
+          ...this.props.location.params,
+          ...params
+        }
+      }
+    } else {
+      location = {
+        pathname,
+        relativePathname,
+        params
       }
     }
 

@@ -1,4 +1,4 @@
-import history, { navigateReplace } from './history'
+import { history, navigateReplace } from './history'
 
 const REDIRECT_START_REGEX = /^\?redirect=([\w%\d-]+)/
 const REDIRECT_MID_REGEX = /&redirect=([\w%\d-]+)/

@@ -17,18 +17,9 @@ function createCommonjsModule(fn, module) {
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-/**
- * Similar to invariant but only logs a warning if the condition is not met.
- * This can be used to log issues in development environments in critical
- * paths. Removing the logging code for production environments will keep the
- * same logic and follow the same code paths.
- */
-
-var __DEV__ = process.env.NODE_ENV !== 'production';
-
 var warning = function() {};
 
-if (__DEV__) {
+{
   warning = function(condition, format, args) {
     var len = arguments.length;
     args = new Array(len > 2 ? len - 2 : 0);
@@ -76,21 +67,8 @@ var warning_1 = warning;
  * LICENSE file in the root directory of this source tree.
  */
 
-/**
- * Use invariant() to assert state which your program assumes to be true.
- *
- * Provide sprintf-style format (only %s is supported) and arguments
- * to provide information about what broke and what you were
- * expecting.
- *
- * The invariant message will be stripped in production, but the invariant
- * will remain to ensure logic does not differ in production.
- */
-
-var NODE_ENV = process.env.NODE_ENV;
-
 var invariant = function(condition, format, a, b, c, d, e, f) {
-  if (NODE_ENV !== 'production') {
+  {
     if (format === undefined) {
       throw new Error('invariant requires an error message argument');
     }
@@ -860,53 +838,115 @@ exports.default = createBrowserHistory;
 
 var createBrowserHistory = unwrapExports(createBrowserHistory_1);
 
-const history = createBrowserHistory();
-const navigateReplace = (pathname, search, hash) => history.replace({ pathname, search, hash });
+var _listenerRegistered = false;
 
-const REDIRECT_START_REGEX = /^\?redirect=([\w%\d-]+)/;
-const REDIRECT_MID_REGEX = /&redirect=([\w%\d-]+)/;
+var history = createBrowserHistory();
+
+var bindHistory = function bindHistory(store) {
+  _listenerRegistered = true;
+
+  history.listen(function (location, method) {
+    store.dispatch({ type: 'navigate', payload: { location: location, method: method } });
+  });
+};
+
+var navigate = function navigate(pathname, search, hash) {
+  return history.push({ pathname: pathname, search: search, hash: hash });
+};
+var navigateReplace = function navigateReplace(pathname, search, hash) {
+  return history.replace({ pathname: pathname, search: search, hash: hash });
+};
+var navigateBack = function navigateBack() {
+  return history.goBack();
+};
+
+var isHistoryListenerRegistered = function isHistoryListenerRegistered() {
+  return _listenerRegistered;
+};
+var historyListenerRegistered = function historyListenerRegistered() {
+  _listenerRegistered = true;
+};
+
+var REDIRECT_START_REGEX = /^\?redirect=([\w%\d-]+)/;
+var REDIRECT_MID_REGEX = /&redirect=([\w%\d-]+)/;
 
 var AuthGuard = {
-  authOnly: (loginUrl = '/login', test = props => props.auth.valid) => props => {
-    if (test(props)) return true;
+  authOnly: function authOnly() {
+    var loginUrl = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '/login';
+    var test = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function (props) {
+      return props.auth.valid;
+    };
+    return function (props) {
+      if (test(props)) return true;
 
-    let query = '';
-    if (history.location.pathname !== '/') {
-      if (history.location.search) {
-        query = history.location.search + '&';
-      } else {
-        query = '?';
+      var query = '';
+      if (history.location.pathname !== '/') {
+        if (history.location.search) {
+          query = history.location.search + '&';
+        } else {
+          query = '?';
+        }
+        query += 'redirect=' + encodeURIComponent(history.location.pathname);
       }
-      query += 'redirect=' + encodeURIComponent(history.location.pathname);
-    }
 
-    navigateReplace(loginUrl, query);
-    return false;
+      navigateReplace(loginUrl, query);
+      return false;
+    };
   },
 
-  anonOnly: (rootUrl = '/', test = props => props.auth.valid) => props => {
-    if (!test(props)) return true;
+  anonOnly: function anonOnly() {
+    var rootUrl = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '/';
+    var test = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function (props) {
+      return props.auth.valid;
+    };
+    return function (props) {
+      if (!test(props)) return true;
 
-    let redirect = '';
-    let query = history.location.search;
+      var redirect = '';
+      var query = history.location.search;
 
-    let result = REDIRECT_START_REGEX.exec(query);
-    if (result) {
-      redirect = decodeURIComponent(result[1]);
-      query = query.substr(result[0].length + 1);
-      if (query) query = '?' + query;
-    } else {
-      result = REDIRECT_MID_REGEX.exec(query);
+      var result = REDIRECT_START_REGEX.exec(query);
       if (result) {
         redirect = decodeURIComponent(result[1]);
-        query = query.substring(0, result.index) + query.substring(result.index + result[0].length);
+        query = query.substr(result[0].length + 1);
+        if (query) query = '?' + query;
+      } else {
+        result = REDIRECT_MID_REGEX.exec(query);
+        if (result) {
+          redirect = decodeURIComponent(result[1]);
+          query = query.substring(0, result.index) + query.substring(result.index + result[0].length);
+        }
       }
-    }
 
-    navigateReplace(redirect || rootUrl, query);
-    return false;
+      navigateReplace(redirect || rootUrl, query);
+      return false;
+    };
   }
 };
+
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
+var createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
 
 var _extends = Object.assign || function (target) {
   for (var i = 1; i < arguments.length; i++) {
@@ -922,18 +962,48 @@ var _extends = Object.assign || function (target) {
   return target;
 };
 
-const DEFAULT = {
+var inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
+
+var possibleConstructorReturn = function (self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return call && (typeof call === "object" || typeof call === "function") ? call : self;
+};
+
+var DEFAULT = {
   pathname: window.location.pathname,
   search: '',
   hash: '',
   method: 'PUSH'
 };
 
-var LocationReducer = ((state = DEFAULT, action) => {
+var LocationReducer = (function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT;
+  var action = arguments[1];
+
   if (action.type === 'navigate') {
-    const { location, method } = action.payload;
+    var _action$payload = action.payload,
+        location = _action$payload.location,
+        method = _action$payload.method;
+
     return _extends({}, state, location, {
-      method
+      method: method
     });
   }
   return state;
@@ -1372,132 +1442,190 @@ pathToRegexp_1.compile = compile_1;
 pathToRegexp_1.tokensToFunction = tokensToFunction_1;
 pathToRegexp_1.tokensToRegExp = tokensToRegExp_1;
 
-class Router extends React.Component {
-  constructor(props) {
-    super(props);
+var Router = function (_React$Component) {
+  inherits(Router, _React$Component);
+
+  function Router(props) {
+    classCallCheck(this, Router);
 
     // Compute route regexes
-    this.routes = {};
-    this.routePaths = Object.keys(props.routes);
-    this.routePaths.forEach(path => {
-      const action = props.routes[path].action || props.routes[path];
-      const guard = props.routes[path].guard || null;
-      const keys = [];
-      const pattern = pathToRegexp_1(path, keys, { end: false });
+    var _this = possibleConstructorReturn(this, (Router.__proto__ || Object.getPrototypeOf(Router)).call(this, props));
 
-      this.routes[path] = { pattern, keys, action, guard };
+    _this.routes = {};
+    _this.routePaths = Object.keys(props.routes);
+    _this.routePaths.forEach(function (path) {
+      var action = props.routes[path].action || props.routes[path];
+      var guard = props.routes[path].guard || null;
+      var keys = [];
+      var pattern = pathToRegexp_1(path, keys, { end: false });
+
+      _this.routes[path] = { pattern: pattern, keys: keys, action: action, guard: guard };
     });
 
     // Convert root to regex if not already
-    let root = props.root;
+    var root = props.root;
     if (root && !(root instanceof RegExp)) {
       root = pathToRegexp_1(root, [], { end: false });
     }
 
-    this.state = {
-      root,
+    _this.state = {
+      root: root,
       route: null,
       pathname: window.location.pathname,
       redirect: ''
     };
-  }
 
-  componentDidMount() {
-    this.updateRoute(history.location.pathname);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    // On path change, update route
-    if (this.state.pathname !== nextProps.location.pathname) {
-      return this.updateRoute(nextProps.location.pathname);
+    if (!isHistoryListenerRegistered()) {
+      historyListenerRegistered();
+      history.listen(function (location, method) {
+        _this.componentWillReceiveProps({ location: location, method: method });
+      });
     }
-
-    // If there is already a route, check the auth/anon requirements
-    if (this.state.route && this.state.route.guard) {
-      this.state.route.guard(nextProps);
-    }
+    return _this;
   }
 
-  updateRoute(pathname) {
-    // Trim off root from pathname
-    let relativePathname = pathname;
-    let trimmedRoot = '';
-    if (this.state.root) {
-      let rootResult = this.state.root.exec(pathname);
-      if (rootResult) {
-        relativePathname = pathname.substr(rootResult[0].length);
-        trimmedRoot = rootResult[0];
+  createClass(Router, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      this.updateRoute(history.location.pathname);
+    }
+  }, {
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps(nextProps) {
+      // On path change, update route
+      if (this.state.pathname !== nextProps.location.pathname) {
+        return this.updateRoute(nextProps.location.pathname);
+      }
+
+      // If there is already a route, check the auth/anon requirements
+      if (this.state.route && this.state.route.guard) {
+        this.state.route.guard(nextProps);
       }
     }
-
-    // Loop through routes to find match
-    for (let i = 0; i < this.routePaths.length; i++) {
-      let routePath = this.routePaths[i];
-      let route = this.routes[routePath];
-      let match = route.pattern.exec(relativePathname);
-      if (!match) continue;
-
-      // Parse params
-      let params = {};
-      for (let i = 1; i < match.length; i++) {
-        if (match[i] !== undefined) {
-          params[route.keys[i - 1].name] = match[i];
+  }, {
+    key: 'updateRoute',
+    value: function updateRoute(pathname) {
+      // Trim off root from pathname
+      var relativePathname = pathname;
+      var trimmedRoot = '';
+      if (this.state.root) {
+        var rootResult = this.state.root.exec(pathname);
+        if (rootResult) {
+          relativePathname = pathname.substr(rootResult[0].length);
+          trimmedRoot = rootResult[0];
         }
       }
 
-      // Handle redirects if the action is a string
-      if (typeof route.action === 'string') {
-        let redirect = route.action;
+      // Loop through routes to find match
+      for (var i = 0; i < this.routePaths.length; i++) {
+        var routePath = this.routePaths[i];
+        var route = this.routes[routePath];
+        var match = route.pattern.exec(relativePathname);
+        if (!match) continue;
 
-        // Fill in missing params
-        if (match.length > 0) {
-          for (let key of route.keys) {
-            redirect = redirect.replace(':' + key, params[key]);
+        // Parse params
+        var params = {};
+        for (var _i = 1; _i < match.length; _i++) {
+          if (match[_i] !== undefined) {
+            params[route.keys[_i - 1].name] = match[_i];
           }
         }
 
-        // Include any trimmed off root portion and redirect
-        console.log(`@router/UPDATE redirecting to ${redirect}`);
-        return navigateReplace(trimmedRoot + redirect, history.location.search);
+        // Handle redirects if the action is a string
+        if (typeof route.action === 'string') {
+          var redirect = route.action;
+
+          // Fill in missing params
+          if (match.length > 0) {
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+              for (var _iterator = route.keys[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var key = _step.value;
+
+                redirect = redirect.replace(':' + key, params[key]);
+              }
+            } catch (err) {
+              _didIteratorError = true;
+              _iteratorError = err;
+            } finally {
+              try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+              } finally {
+                if (_didIteratorError) {
+                  throw _iteratorError;
+                }
+              }
+            }
+          }
+
+          // Include any trimmed off root portion and redirect
+          console.log('@router/UPDATE redirecting to ' + redirect);
+          return navigateReplace(trimmedRoot + redirect, history.location.search);
+        }
+
+        // Check route guard
+        if (route.guard && !route.guard(this.props)) return;
+        console.log('@router/UPDATE ' + pathname);
+
+        // Return matched route
+        return this.setState({ route: route, pathname: pathname, relativePathname: relativePathname, params: params });
       }
 
-      // Check route guard
-      if (route.guard && !route.guard(this.props)) return;
-      console.log(`@router/UPDATE ${pathname}`);
-
-      // Return matched route
-      return this.setState({ route, pathname, relativePathname, params });
+      throw new Error('Failed to find route for path: ' + pathname + '. (router: ' + (this.props.root || '/') + ')');
     }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _state = this.state,
+          route = _state.route,
+          pathname = _state.pathname,
+          relativePathname = _state.relativePathname,
+          params = _state.params;
 
-    throw new Error(`Failed to find route for path: ${pathname}. (router: ${this.props.root || '/'})`);
-  }
+      // Show loading screen for initial state/redirects
 
-  render() {
-    const { route, relativePathname, params } = this.state;
+      if (!route || typeof route.action !== 'function') {
+        if (this.props.loader) return this.props.loader(this.props);
+        return null;
+      }
 
-    // Show loading screen for initial state/redirects
-    if (!route || typeof route.action !== 'function') {
-      if (this.props.loader) return this.props.loader(this.props);
-      return null;
+      // Merge location objects from parent routers with local data
+      var location = {};
+      if (this.props.location) {
+        location = _extends({}, this.props.location, {
+          relativePathname: relativePathname,
+          params: _extends({}, this.props.location.params, params)
+        });
+      } else {
+        location = {
+          pathname: pathname,
+          relativePathname: relativePathname,
+          params: params
+        };
+      }
+
+      var Component = route.action;
+      return React.createElement(Component, _extends({}, this.props, { location: location }));
     }
-
-    // Merge location objects from parent routers with local data
-    const location = _extends({}, this.props.location, {
-      relativePathname,
-      params: _extends({}, this.props.location.params, params)
-    });
-
-    const Component = route.action;
-    return React.createElement(Component, _extends({}, this.props, { location: location }));
-  }
-}
+  }]);
+  return Router;
+}(React.Component);
 
 var index = {
-  AuthGuard,
-  History: history,
-  LocationReducer,
-  Router
+  AuthGuard: AuthGuard,
+  LocationReducer: LocationReducer,
+  Router: Router,
+  history: history,
+  bindHistory: bindHistory,
+  navigate: navigate,
+  navigateReplace: navigateReplace,
+  navigateBack: navigateBack
 };
 
 export default index;
-//# sourceMappingURL=index.es.js.map
+//# sourceMappingURL=index.module.js.map
