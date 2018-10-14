@@ -1,40 +1,23 @@
-import babel from 'rollup-plugin-babel'
-import commonjs from 'rollup-plugin-commonjs'
-import replace from 'rollup-plugin-replace'
-import postcss from 'rollup-plugin-postcss'
-import resolve from 'rollup-plugin-node-resolve'
+const babel = require('rollup-plugin-babel')
+const commonjs = require('rollup-plugin-commonjs')
+const replace = require('rollup-plugin-replace')
+const resolve = require('rollup-plugin-node-resolve')
+const json = require('rollup-plugin-json')
+
+const dependencies = Object.keys(require('./package.json').peerDependencies || [])
 
 export default {
   input: 'src/index.js',
-  external: ['react', 'react-dom'],
+  external: dependencies,
 
-  output: [
-    {
-      format: 'umd',
-      name: 'ReactRouting',
-      file: './dist/index.js',
-      sourcemap: true,
-      globals: {
-        react: 'React',
-        'react-dom': 'ReactDOM'
-      }
-    },
-    {
-      format: 'es',
-      name: 'ReactRouting',
-      file: './dist/index.module.js',
-      sourcemap: true,
-      globals: {
-        react: 'React',
-        'react-dom': 'ReactDOM'
-      }
-    }
-  ],
+  output: {
+    format: 'cjs',
+    name: 'ReactRouting',
+    file: './dist/index.js',
+    sourcemap: true
+  },
 
   plugins: [
-    postcss({
-      modules: true
-    }),
     babel({
       exclude: 'node_modules/**'
     }),
@@ -42,6 +25,7 @@ export default {
       'process.env.NODE_ENV': JSON.stringify('development')
     }),
     resolve(),
-    commonjs()
+    commonjs(),
+    json()
   ]
 }
